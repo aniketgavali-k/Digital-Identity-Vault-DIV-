@@ -1,0 +1,46 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String       @id @default(uuid())
+  name      String
+  email     String       @unique
+  password  String
+  role      String       @default("user")
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  documents Document[]
+  shares    ShareToken[]
+}
+
+model Document {
+  id                 String       @id @default(uuid())
+  userId             String
+  title              String
+  documentType       String
+  fileUrl            String
+  hash               String
+  verificationStatus String       @default("pending")
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  user               User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shares             ShareToken[]
+}
+
+model ShareToken {
+  id         String    @id @default(uuid())
+  documentId String
+  token      String    @unique
+  expiresAt  DateTime?
+  createdBy  String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  document   Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  user       User      @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+}
